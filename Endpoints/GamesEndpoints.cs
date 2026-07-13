@@ -31,7 +31,7 @@ public static class GamesEnpoints
         }) .WithName(GetGameEndpointName);
 
         // Post Method: Use Dto for create data Game
-        app.MapPost("/", (CreateGameDto newGame) =>
+        group.MapPost("/", (CreateGameDto newGame) =>
             {
 
                 GameDto game = new
@@ -50,7 +50,7 @@ public static class GamesEnpoints
         );
 
         // Put Method: Use Dto for update data Game
-        app.MapPut("/{id}", (int id,UpdateGameDto updatedGame) =>
+        group.MapPut("/{id}", (int id,UpdateGameDto updatedGame) =>
             {
             var index = games.FindIndex(game => game.Id == id);
 
@@ -73,7 +73,7 @@ public static class GamesEnpoints
         );
 
         // Delete Method: Check the same id parameter with the actual object id
-        app.MapDelete("/{id}", (int id) =>
+        group.MapDelete("/{id}", (int id) =>
             {
             games.RemoveAll(game => game.Id == id);
 
