@@ -1,0 +1,4 @@
+// Ignore Unnecessary Folder
+bin/
+obj/
+.vs/
