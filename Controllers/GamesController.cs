@@ -1,3 +1,4 @@
+using GameStore.API.Dtos;
 using GameStore.API.Dtos.Games;
 using GameStore.API.Services.Games;
 using Microsoft.AspNetCore.Mvc;
@@ -9,11 +10,12 @@ namespace GameStore.API.Controllers;
 public class GamesController(IGameService gameService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<List<GameSummaryDto>>> GetGames()
+    public async Task<ActionResult<PaginatedResult<GameSummaryDto>>> GetGames([FromQuery] GameFilterDto filter)
     {
-        var games = await gameService.GetGamesAsync();
-        return Ok(games);
+        var result = await gameService.GetFilteredGamesAsync(filter);
+        return Ok(result);
     }
+
     [HttpGet("{id:int}")]
     public async Task<ActionResult<GameDetailsDto>> GetGameById (int id)
     {

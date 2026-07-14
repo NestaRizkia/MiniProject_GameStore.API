@@ -1,9 +1,11 @@
 using GameStore.API.Models;
 using GameStore.API.Repositories.Games;
+using GameStore.API.Repositories.Genres;
+using GameStore.API.Dtos;
 using GameStore.API.Dtos.Games;
 
 namespace GameStore.API.Services.Games;
-public class GameService(IGameRepository gameRepository) : IGameService
+public class GameService(IGameRepository gameRepository, IGenreRepository genreRepository) : IGameService
 {
     public async Task<List<GameSummaryDto>> GetGamesAsync()
     {
@@ -11,13 +13,33 @@ public class GameService(IGameRepository gameRepository) : IGameService
         return games.Select(game => new GameSummaryDto(
             game.Id,
             game.Name,
-            game.Genre.Name,
+            game.Genre?.Name ?? "Unknown",
             game.Price,
             game.ReleaseDate
         )).ToList();
     }
 
-    public async Task<GameDetailsDto> GetGameByIdAsync(int id)
+    public async Task<PaginatedResult<GameSummaryDto>> GetFilteredGamesAsync(GameFilterDto filter)
+    {
+        var (games, totalCount) = await gameRepository.GetFilteredGamesAsync(filter);
+
+        var gameDtos = games.Select(game => new GameSummaryDto(
+            game.Id,
+            game.Name,
+            game.Genre?.Name ?? "Unknown",
+            game.Price,
+            game.ReleaseDate
+        )).ToList();
+
+        return new PaginatedResult<GameSummaryDto>(
+            gameDtos,
+            totalCount,
+            filter.PageNumber,
+            filter.PageSize
+        );
+    }
+
+    public async Task<GameDetailsDto?> GetGameByIdAsync(int id)
     {
         var game = await gameRepository.GetByIdAsync(id);
         

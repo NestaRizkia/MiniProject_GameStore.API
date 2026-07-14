@@ -10,8 +10,8 @@ public class GenreRepository(GameStoreContext dbContext) : IGenreRepository
     {
         return await dbContext.Genres
             .FromSqlRaw(@"
-                SELECT Id, Name 
-                FROM Genres")
+                SELECT ""Id"", ""Name"" 
+                FROM ""Genres""")
             .AsNoTracking()
             .ToListAsync();
     }
