@@ -37,15 +37,8 @@ public class GenresController(IGenreService genreService) : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult> UpdateGenre(int id, UpdateGenreDto updateGenre)
     {
-        try
-        {
-            await genreService.UpdateGenreAsync(id, updateGenre);
-            return NoContent();
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
+        await genreService.UpdateGenreAsync(id, updateGenre);
+        return NoContent();
     }
 
     [HttpDelete("{id}")]

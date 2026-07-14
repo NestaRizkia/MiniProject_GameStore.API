@@ -34,15 +34,8 @@ public class GamesController(IGameService gameService) : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult> UpdateGame(int id, UpdateGameDto updatedGame)
     {
-        try
-        {
-            await gameService.UpdateGameAsync(id, updatedGame);
-            return NoContent();
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
+        await gameService.UpdateGameAsync(id, updatedGame);
+        return NoContent();
     }
 
     [HttpDelete("{id}")]
