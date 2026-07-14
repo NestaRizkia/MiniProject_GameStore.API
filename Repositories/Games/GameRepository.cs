@@ -9,6 +9,9 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
     public async Task<List<Game>> GetAllAsync()
     {
         return await dbContext.Games
+            .FromSqlRaw(@"
+                SELECT g.Id, g.Name, g.GenreId, g.Price, g.ReleaseDate 
+                FROM Games g")
             .Include(game => game.Genre)
             .AsNoTracking()
             .ToListAsync();

@@ -8,7 +8,12 @@ public class GenreRepository(GameStoreContext dbContext) : IGenreRepository
 {
     public async Task<List<Genre>> GetAllAsync()
     {
-        return await dbContext.Genres.ToListAsync();
+        return await dbContext.Genres
+            .FromSqlRaw(@"
+                SELECT Id, Name 
+                FROM Genres")
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     public async Task<Genre?> GetByIdAsync(int id)
