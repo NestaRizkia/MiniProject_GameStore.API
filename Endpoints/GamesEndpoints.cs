@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.API.Endpoints;
 
-public static class GamesEnpoints
+public static class GamesEndpoints
 {
     const string GetGameEndpointName = "GetGame";
 

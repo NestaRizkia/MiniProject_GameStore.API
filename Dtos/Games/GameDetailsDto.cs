@@ -8,5 +8,5 @@ public record class GameDetailsDto
     string Name,
     int GenreId,
     decimal Price,
-    DateOnly ReleaseData
+    DateOnly ReleaseDate
 );

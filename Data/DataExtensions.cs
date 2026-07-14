@@ -1,6 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using GameStore.API.Models;
-
 namespace GameStore.API.Data;
 
 public static class DataExtensions
@@ -14,7 +12,7 @@ public static class DataExtensions
 
     public static void AddGameStoreDb(this WebApplicationBuilder builder)
     {
-        var connString = builder.Configuration.GetConnectionString("GameStore");
+        var connString = builder.Configuration.GetConnectionString("NeonConnection");
         // DbContext has a Scoped service lifetime because:
         // 1. It ensures that a new instance of DbContext is created per request
         // 2. Db connections are a limited and expensive resource
@@ -22,23 +20,8 @@ public static class DataExtensions
         // 4. makes it easier to manage transactions and ensure data consistency
         // 5. Reusing a DbContext instance can lead to increased memory usage
 
-        builder.Services.AddSqlite<GameStoreContext>(
-                connString,
-                optionsAction: options => options.UseSeeding((context, _) =>
-                {
-                    if(!context.Set<Genre>().Any())
-                    {
-                        context.Set<Genre>().AddRange(
-                            new Genre {Name = "Fighting"},
-                            new Genre {Name = "RPG"},
-                            new Genre {Name = "Platformer"},
-                            new Genre {Name = "Racing"},
-                            new Genre {Name = "Sports"}
-                        );
-                    }
-
-                    context.SaveChanges();
-                })
+        builder.Services.AddNpgsql<GameStoreContext>(
+                connString
         );
     }
 }
