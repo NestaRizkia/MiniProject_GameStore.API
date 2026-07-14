@@ -14,7 +14,7 @@ public class GamesController(IGameService gameService) : ControllerBase
         var games = await gameService.GetGamesAsync();
         return Ok(games);
     }
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<ActionResult<GameDetailsDto>> GetGameById (int id)
     {
         var game = await gameService.GetGameByIdAsync(id);
@@ -32,7 +32,7 @@ public class GamesController(IGameService gameService) : ControllerBase
         return CreatedAtAction(nameof(GetGameById), new { id = game.Id}, game);
     }
     [HttpPut("{id}")]
-    public async Task<ActionResult> UpdateGame(int id,UpdateGameDto updatedGame)
+    public async Task<ActionResult> UpdateGame(int id, UpdateGameDto updatedGame)
     {
         try
         {
@@ -44,17 +44,11 @@ public class GamesController(IGameService gameService) : ControllerBase
             return NotFound();
         }
     }
+
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteGame(int id)
     {
-        try
-        {
-            await gameService.DeleteGameAsync(id);
-            return NoContent();
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
+        await gameService.DeleteGameAsync(id);
+        return NoContent();
     }
 }

@@ -26,10 +26,8 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
         return game;
     }
 
-    public async Task UpdateAsync(int id, Game game)
+    public async Task UpdateAsync(Game game)
     {
-        await dbContext.Games.FindAsync(id);
-
         await dbContext.SaveChangesAsync();
     }
 

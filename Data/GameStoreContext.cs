@@ -12,12 +12,15 @@ public class GameStoreContext(DbContextOptions<GameStoreContext> options)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Genre>().HasData(
-            new Genre {Id = 1, Name = "Fighting"},
-            new Genre {Id = 2, Name = "RPG"},
-            new Genre {Id = 3, Name = "Platformer"},
-            new Genre {Id = 4, Name = "Racing"},
-            new Genre {Id = 5, Name = "Sports"}
-        );
+        modelBuilder.Entity<Game>(entity =>
+        {
+            entity.Property(g => g.Price)
+                  .HasColumnType("decimal(18,2)");
+
+            entity.HasOne(g => g.Genre)
+                  .WithMany()
+                  .HasForeignKey(g => g.GenreId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
     }
 }

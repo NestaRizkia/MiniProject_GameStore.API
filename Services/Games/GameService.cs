@@ -1,5 +1,3 @@
-using GameStore.API.Dtos;
-using GameStore.API.Repositories;
 using GameStore.API.Models;
 using GameStore.API.Repositories.Games;
 using GameStore.API.Dtos.Games;
@@ -13,7 +11,7 @@ public class GameService(IGameRepository gameRepository) : IGameService
         return games.Select(game => new GameSummaryDto(
             game.Id,
             game.Name,
-            game.Genre!.Name,
+            game.Genre.Name,
             game.Price,
             game.ReleaseDate
         )).ToList();
@@ -56,7 +54,7 @@ public class GameService(IGameRepository gameRepository) : IGameService
     public async Task UpdateGameAsync(int id, UpdateGameDto updatedGame)
     {
         var existingGame = await gameRepository.GetByIdAsync(id);
-        if(existingGame is null)
+        if (existingGame is null)
         {
             throw new KeyNotFoundException($"Game with id {id} not Found");
         }
@@ -66,7 +64,7 @@ public class GameService(IGameRepository gameRepository) : IGameService
         existingGame.Price = updatedGame.Price;
         existingGame.ReleaseDate = updatedGame.ReleaseDate;
 
-        await gameRepository.UpdateAsync(id, existingGame);
+        await gameRepository.UpdateAsync(existingGame);
     }
 
     public async Task DeleteGameAsync(int id)
