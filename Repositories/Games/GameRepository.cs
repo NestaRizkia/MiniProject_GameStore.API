@@ -38,7 +38,7 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
         // Search filter (Name)
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
         {
-            sql += $" AND LOWER(""Name"") LIKE @p{paramIndex}";
+            sql += " AND LOWER(\"Name\") LIKE @p" + paramIndex;
             parameters.Add(new NpgsqlParameter($"@p{paramIndex}", $"%{filter.SearchTerm.ToLower()}%"));
             paramIndex++;
         }
@@ -46,20 +46,20 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
         // Price range filter using BETWEEN
         if (filter.MinPrice.HasValue && filter.MaxPrice.HasValue)
         {
-            sql += $" AND ""Price"" BETWEEN @p{paramIndex} AND @p{paramIndex + 1}";
+            sql += " AND \"Price\" BETWEEN @p" + paramIndex + " AND @p" + (paramIndex + 1);
             parameters.Add(new NpgsqlParameter($"@p{paramIndex}", filter.MinPrice.Value));
             parameters.Add(new NpgsqlParameter($"@p{paramIndex + 1}", filter.MaxPrice.Value));
             paramIndex += 2;
         }
         else if (filter.MinPrice.HasValue)
         {
-            sql += $" AND ""Price"" >= @p{paramIndex}";
+            sql += " AND \"Price\" >= @p" + paramIndex;
             parameters.Add(new NpgsqlParameter($"@p{paramIndex}", filter.MinPrice.Value));
             paramIndex++;
         }
         else if (filter.MaxPrice.HasValue)
         {
-            sql += $" AND ""Price"" <= @p{paramIndex}";
+            sql += " AND \"Price\" <= @p" + paramIndex;
             parameters.Add(new NpgsqlParameter($"@p{paramIndex}", filter.MaxPrice.Value));
             paramIndex++;
         }
@@ -67,26 +67,26 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
         // Date range filter using BETWEEN
         if (filter.StartDate.HasValue && filter.EndDate.HasValue)
         {
-            sql += $" AND ""ReleaseDate"" BETWEEN @p{paramIndex} AND @p{paramIndex + 1}";
+            sql += " AND \"ReleaseDate\" BETWEEN @p" + paramIndex + " AND @p" + (paramIndex + 1);
             parameters.Add(new NpgsqlParameter($"@p{paramIndex}", filter.StartDate.Value));
             parameters.Add(new NpgsqlParameter($"@p{paramIndex + 1}", filter.EndDate.Value));
             paramIndex += 2;
         }
         else if (filter.StartDate.HasValue)
         {
-            sql += $" AND ""ReleaseDate"" >= @p{paramIndex}";
+            sql += " AND \"ReleaseDate\" >= @p" + paramIndex;
             parameters.Add(new NpgsqlParameter($"@p{paramIndex}", filter.StartDate.Value));
             paramIndex++;
         }
         else if (filter.EndDate.HasValue)
         {
-            sql += $" AND ""ReleaseDate"" <= @p{paramIndex}";
+            sql += " AND \"ReleaseDate\" <= @p" + paramIndex;
             parameters.Add(new NpgsqlParameter($"@p{paramIndex}", filter.EndDate.Value));
             paramIndex++;
         }
 
         // Get total count with filters
-        var countSql = $"SELECT COUNT(*) FROM ({sql}) AS filtered";
+        var countSql = "SELECT COUNT(*) FROM (" + sql + ") AS filtered";
         int totalCount;
         
         await using (var connection = dbContext.Database.GetDbConnection())
@@ -102,7 +102,7 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
         }
 
         // Add pagination
-        sql += $@" ORDER BY ""Name"" 
+        sql += @" ORDER BY ""Name"" 
                    OFFSET @offset ROWS 
                    FETCH NEXT @pageSize ROWS ONLY";
 
