@@ -11,7 +11,7 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
     {
         return await dbContext.Games
             .FromSqlRaw(@"
-                SELECT ""Id"", ""Name"", ""GenreId"", ""Price"", ""ReleaseDate"" 
+                SELECT ""Id"", ""Name"", ""GenreId"", ""Price"", ""ReleaseDate"", ""CreatedAt"", ""UpdatedAt"" 
                 FROM ""Games""")
             .Include(game => game.Genre)
             .AsNoTracking()
