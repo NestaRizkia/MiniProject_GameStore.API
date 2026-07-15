@@ -2,6 +2,7 @@ using GameStore.API.Models;
 using GameStore.API.Data;
 using GameStore.API.Dtos.Games;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace GameStore.API.Repositories.Games;
 
@@ -25,47 +26,93 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
 
     public async Task<(List<Game> Games, int TotalCount)> GetFilteredGamesAsync(GameFilterDto filter)
     {
-        var query = dbContext.Games.Include(game => game.Genre).AsQueryable();
+        // Build dynamic SQL query with filters
+        var sql = @"
+            SELECT ""Id"", ""Name"", ""GenreId"", ""Price"", ""ReleaseDate"", ""CreatedAt"", ""UpdatedAt"" 
+            FROM ""Games"" 
+            WHERE 1=1";
 
-        // Apply search filter - case-insensitive search on Name and Genre
+        var parameters = new List<NpgsqlParameter>();
+        var paramIndex = 0;
+
+        // Search filter (Name)
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
         {
-            var searchTerm = filter.SearchTerm.ToLower();
-            query = query.Where(g => 
-                g.Name.ToLower().Contains(searchTerm) || 
-                (g.Genre != null && g.Genre.Name.ToLower().Contains(searchTerm)));
+            sql += $" AND LOWER(""Name"") LIKE @p{paramIndex}";
+            parameters.Add(new NpgsqlParameter($"@p{paramIndex}", $"%{filter.SearchTerm.ToLower()}%"));
+            paramIndex++;
         }
 
-        // Apply price range filters
-        if (filter.MinPrice.HasValue)
+        // Price range filter using BETWEEN
+        if (filter.MinPrice.HasValue && filter.MaxPrice.HasValue)
         {
-            query = query.Where(g => g.Price >= filter.MinPrice.Value);
+            sql += $" AND ""Price"" BETWEEN @p{paramIndex} AND @p{paramIndex + 1}";
+            parameters.Add(new NpgsqlParameter($"@p{paramIndex}", filter.MinPrice.Value));
+            parameters.Add(new NpgsqlParameter($"@p{paramIndex + 1}", filter.MaxPrice.Value));
+            paramIndex += 2;
         }
-
-        if (filter.MaxPrice.HasValue)
+        else if (filter.MinPrice.HasValue)
         {
-            query = query.Where(g => g.Price <= filter.MaxPrice.Value);
+            sql += $" AND ""Price"" >= @p{paramIndex}";
+            parameters.Add(new NpgsqlParameter($"@p{paramIndex}", filter.MinPrice.Value));
+            paramIndex++;
         }
-
-        // Apply date range filters
-        if (filter.StartDate.HasValue)
+        else if (filter.MaxPrice.HasValue)
         {
-            query = query.Where(g => g.ReleaseDate >= filter.StartDate.Value);
+            sql += $" AND ""Price"" <= @p{paramIndex}";
+            parameters.Add(new NpgsqlParameter($"@p{paramIndex}", filter.MaxPrice.Value));
+            paramIndex++;
         }
 
-        if (filter.EndDate.HasValue)
+        // Date range filter using BETWEEN
+        if (filter.StartDate.HasValue && filter.EndDate.HasValue)
         {
-            query = query.Where(g => g.ReleaseDate <= filter.EndDate.Value);
+            sql += $" AND ""ReleaseDate"" BETWEEN @p{paramIndex} AND @p{paramIndex + 1}";
+            parameters.Add(new NpgsqlParameter($"@p{paramIndex}", filter.StartDate.Value));
+            parameters.Add(new NpgsqlParameter($"@p{paramIndex + 1}", filter.EndDate.Value));
+            paramIndex += 2;
+        }
+        else if (filter.StartDate.HasValue)
+        {
+            sql += $" AND ""ReleaseDate"" >= @p{paramIndex}";
+            parameters.Add(new NpgsqlParameter($"@p{paramIndex}", filter.StartDate.Value));
+            paramIndex++;
+        }
+        else if (filter.EndDate.HasValue)
+        {
+            sql += $" AND ""ReleaseDate"" <= @p{paramIndex}";
+            parameters.Add(new NpgsqlParameter($"@p{paramIndex}", filter.EndDate.Value));
+            paramIndex++;
         }
 
-        // Get total count before pagination
-        var totalCount = await query.CountAsync();
+        // Get total count with filters
+        var countSql = $"SELECT COUNT(*) FROM ({sql}) AS filtered";
+        int totalCount;
+        
+        await using (var connection = dbContext.Database.GetDbConnection())
+        {
+            await connection.OpenAsync();
+            await using var countCommand = connection.CreateCommand();
+            countCommand.CommandText = countSql;
+            foreach (var param in parameters)
+            {
+                countCommand.Parameters.Add(new NpgsqlParameter(param.ParameterName, param.Value));
+            }
+            totalCount = Convert.ToInt32(await countCommand.ExecuteScalarAsync());
+        }
 
-        // Apply pagination
-        var games = await query
-            .OrderBy(g => g.Name)
-            .Skip((filter.PageNumber - 1) * filter.PageSize)
-            .Take(filter.PageSize)
+        // Add pagination
+        sql += $@" ORDER BY ""Name"" 
+                   OFFSET @offset ROWS 
+                   FETCH NEXT @pageSize ROWS ONLY";
+
+        parameters.Add(new NpgsqlParameter("@offset", (filter.PageNumber - 1) * filter.PageSize));
+        parameters.Add(new NpgsqlParameter("@pageSize", filter.PageSize));
+
+        // Execute query
+        var games = await dbContext.Games
+            .FromSqlRaw(sql, parameters.ToArray())
+            .Include(game => game.Genre)
             .AsNoTracking()
             .ToListAsync();
 
