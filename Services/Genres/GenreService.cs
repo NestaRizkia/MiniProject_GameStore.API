@@ -11,7 +11,9 @@ public class GenreService(IGenreRepository genreRepository) : IGenreService
         var genres = await genreRepository.GetAllAsync();
         return genres.Select(genre => new GenreDetailsDto(
             genre.Id,
-            genre.Name
+            genre.Name,
+            genre.CreatedAt,
+            genre.UpdatedAt
         )).ToList();
     }
 
@@ -26,7 +28,9 @@ public class GenreService(IGenreRepository genreRepository) : IGenreService
 
         return new GenreDetailsDto(
             genre.Id,
-            genre.Name
+            genre.Name,
+            genre.CreatedAt,
+            genre.UpdatedAt
         );
     }
 
@@ -41,11 +45,13 @@ public class GenreService(IGenreRepository genreRepository) : IGenreService
 
         return new GenreDetailsDto(
             result.Id,
-            result.Name
+            result.Name,
+            result.CreatedAt,
+            result.UpdatedAt
         );
     }
 
-    public async Task UpdateGenreAsync(int id, UpdateGenreDto updatedGenre)
+    public async Task PatchGenreAsync(int id, PatchGenreDto patchGenre)
     {
         var existingGenre = await genreRepository.GetByIdAsync(id);
         if (existingGenre is null)
@@ -53,7 +59,11 @@ public class GenreService(IGenreRepository genreRepository) : IGenreService
             throw new KeyNotFoundException($"Genre with id {id} not Found");
         }
 
-        existingGenre.Name = updatedGenre.Name;
+        // Only update fields that are provided (not null)
+        if (patchGenre.Name != null)
+        {
+            existingGenre.Name = patchGenre.Name;
+        }
 
         await genreRepository.UpdateAsync(existingGenre);
     }

@@ -13,4 +13,8 @@ public class Game
     public decimal Price {get;set;}
 
     public DateOnly ReleaseDate {get;set;}
+
+    public DateTime CreatedAt {get;set;}
+
+    public DateTime UpdatedAt {get;set;}
 }

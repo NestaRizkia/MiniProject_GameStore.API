@@ -15,7 +15,8 @@ public class GameService(IGameRepository gameRepository, IGenreRepository genreR
             game.Name,
             game.Genre?.Name ?? "Unknown",
             game.Price,
-            game.ReleaseDate
+            game.ReleaseDate,
+            game.UpdatedAt
         )).ToList();
     }
 
@@ -28,7 +29,8 @@ public class GameService(IGameRepository gameRepository, IGenreRepository genreR
             game.Name,
             game.Genre?.Name ?? "Unknown",
             game.Price,
-            game.ReleaseDate
+            game.ReleaseDate,
+            game.UpdatedAt
         )).ToList();
 
         return new PaginatedResult<GameSummaryDto>(
@@ -49,12 +51,18 @@ public class GameService(IGameRepository gameRepository, IGenreRepository genreR
         }
 
         return new GameDetailsDto(
-            game.Id, game.Name, game.GenreId, game.Price, game.ReleaseDate
+            game.Id, game.Name, game.GenreId, game.Price, game.ReleaseDate, game.CreatedAt, game.UpdatedAt
         );
     }
 
     public async Task<GameDetailsDto> AddGameAsync(CreateGameDto createGame)
     {
+        var genreExists = await genreRepository.GetByIdAsync(createGame.GenreId);
+        if (genreExists is null)
+        {
+            throw new KeyNotFoundException($"Genre with id {createGame.GenreId} not found");
+        }
+
         var game = new Game{
             Name = createGame.Name,
             GenreId = createGame.GenreId,
@@ -69,11 +77,13 @@ public class GameService(IGameRepository gameRepository, IGenreRepository genreR
             result.Name,
             result.GenreId,
             result.Price,
-            result.ReleaseDate
+            result.ReleaseDate,
+            result.CreatedAt,
+            result.UpdatedAt
         );
     }
 
-    public async Task UpdateGameAsync(int id, UpdateGameDto updatedGame)
+    public async Task PatchGameAsync(int id, PatchGameDto patchGame)
     {
         var existingGame = await gameRepository.GetByIdAsync(id);
         if (existingGame is null)
@@ -81,10 +91,31 @@ public class GameService(IGameRepository gameRepository, IGenreRepository genreR
             throw new KeyNotFoundException($"Game with id {id} not Found");
         }
 
-        existingGame.Name = updatedGame.Name;
-        existingGame.GenreId = updatedGame.GenreId;
-        existingGame.Price = updatedGame.Price;
-        existingGame.ReleaseDate = updatedGame.ReleaseDate;
+        if (patchGame.Name != null)
+        {
+            existingGame.Name = patchGame.Name;
+        }
+
+        if (patchGame.GenreId.HasValue)
+        {
+            var genreExists = await genreRepository.GetByIdAsync(patchGame.GenreId.Value);
+            if (genreExists is null)
+            {
+                throw new KeyNotFoundException($"Genre with id {patchGame.GenreId.Value} not found");
+            }
+            
+            existingGame.GenreId = patchGame.GenreId.Value;
+        }
+
+        if (patchGame.Price.HasValue)
+        {
+            existingGame.Price = patchGame.Price.Value;
+        }
+
+        if (patchGame.ReleaseDate.HasValue)
+        {
+            existingGame.ReleaseDate = patchGame.ReleaseDate.Value;
+        }
 
         await gameRepository.UpdateAsync(existingGame);
     }

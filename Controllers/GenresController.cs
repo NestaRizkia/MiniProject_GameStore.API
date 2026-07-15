@@ -1,5 +1,6 @@
 using GameStore.API.Dtos.Genres;
 using GameStore.API.Services.Genres;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GameStore.API.Controllers;
@@ -27,6 +28,7 @@ public class GenresController(IGenreService genreService) : ControllerBase
         return Ok(genre);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<GenreDetailsDto>> AddGenre(CreateGenreDto createGenre)
     {
@@ -34,13 +36,15 @@ public class GenresController(IGenreService genreService) : ControllerBase
         return CreatedAtAction(nameof(GetGenreById), new { id = genre.Id }, genre);
     }
 
-    [HttpPut("{id}")]
-    public async Task<ActionResult> UpdateGenre(int id, UpdateGenreDto updateGenre)
+    [Authorize(Roles = "Admin")]
+    [HttpPatch("{id}")]
+    public async Task<ActionResult> PatchGenre(int id, PatchGenreDto patchGenre)
     {
-        await genreService.UpdateGenreAsync(id, updateGenre);
+        await genreService.PatchGenreAsync(id, patchGenre);
         return NoContent();
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteGenre(int id)
     {

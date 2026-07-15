@@ -1,6 +1,7 @@
 using GameStore.API.Dtos;
 using GameStore.API.Dtos.Games;
 using GameStore.API.Services.Games;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GameStore.API.Controllers;
@@ -27,19 +28,24 @@ public class GamesController(IGameService gameService) : ControllerBase
 
         return Ok(game);
     }
+
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult<GameDetailsDto>> AddGame(CreateGameDto createdGame)
     {
         var game = await gameService.AddGameAsync(createdGame);
         return CreatedAtAction(nameof(GetGameById), new { id = game.Id}, game);
     }
-    [HttpPut("{id}")]
-    public async Task<ActionResult> UpdateGame(int id, UpdateGameDto updatedGame)
+
+    [Authorize]
+    [HttpPatch("{id}")]
+    public async Task<ActionResult> PatchGame(int id, PatchGameDto patchGame)
     {
-        await gameService.UpdateGameAsync(id, updatedGame);
+        await gameService.PatchGameAsync(id, patchGame);
         return NoContent();
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteGame(int id)
     {
