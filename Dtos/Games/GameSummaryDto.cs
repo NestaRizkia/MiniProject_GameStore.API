@@ -8,6 +8,6 @@ public record class GameSummaryDto
     string Name,
     string Genre,
     decimal Price,
-    DateOnly ReleaseDate,
-    DateTime UpdatedAt
+    DateOnly ReleaseDate
+//    DateTime UpdatedAt
 );

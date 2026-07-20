@@ -8,7 +8,7 @@ public record class GameDetailsDto
     string Name,
     int GenreId,
     decimal Price,
-    DateOnly ReleaseDate,
-    DateTime CreatedAt,
-    DateTime UpdatedAt
+    DateOnly ReleaseDate
+//    DateTime CreatedAt,
+//    DateTime UpdatedAt
 );

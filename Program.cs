@@ -70,11 +70,4 @@ app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Migrate DB
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<GameStoreContext>();
-    dbContext.Database.Migrate();
-}
-
 app.Run();

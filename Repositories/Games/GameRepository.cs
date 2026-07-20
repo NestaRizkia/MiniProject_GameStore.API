@@ -12,7 +12,7 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
     public async Task<(List<GameSummaryDto> Games, int TotalCount)> GetAllAsync(GameFilterDto filter)
     {
         var sql = @"
-            SELECT g.""Id"", g.""Name"", g.""Price"", g.""ReleaseDate"", g.""UpdatedAt"",
+            SELECT g.""Id"", g.""Name"", g.""Price"", g.""ReleaseDate"",
                    ge.""Name"" AS ""Genre""
             FROM ""Games"" g
             INNER JOIN ""Genres"" ge ON g.""GenreId"" = ge.""Id""

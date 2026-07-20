@@ -29,7 +29,7 @@ public class GameService(IGameRepository gameRepository, IGenreRepository genreR
         }
 
         return new GameDetailsDto(
-            game.Id, game.Name, game.GenreId, game.Price, game.ReleaseDate, game.CreatedAt, game.UpdatedAt
+            game.Id, game.Name, game.GenreId, game.Price, game.ReleaseDate, game.CreatedAt
         );
     }
 
@@ -56,8 +56,7 @@ public class GameService(IGameRepository gameRepository, IGenreRepository genreR
             result.GenreId,
             result.Price,
             result.ReleaseDate,
-            result.CreatedAt,
-            result.UpdatedAt
+            result.CreatedAt
         );
     }
 

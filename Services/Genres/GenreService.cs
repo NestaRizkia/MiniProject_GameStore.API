@@ -11,9 +11,7 @@ public class GenreService(IGenreRepository genreRepository) : IGenreService
         var genres = await genreRepository.GetAllAsync();
         return genres.Select(genre => new GenreDetailsDto(
             genre.Id,
-            genre.Name,
-            genre.CreatedAt,
-            genre.UpdatedAt
+            genre.Name
         )).ToList();
     }
 
@@ -29,8 +27,7 @@ public class GenreService(IGenreRepository genreRepository) : IGenreService
         return new GenreDetailsDto(
             genre.Id,
             genre.Name,
-            genre.CreatedAt,
-            genre.UpdatedAt
+            genre.CreatedAt
         );
     }
 
@@ -46,8 +43,7 @@ public class GenreService(IGenreRepository genreRepository) : IGenreService
         return new GenreDetailsDto(
             result.Id,
             result.Name,
-            result.CreatedAt,
-            result.UpdatedAt
+            result.CreatedAt
         );
     }
 
