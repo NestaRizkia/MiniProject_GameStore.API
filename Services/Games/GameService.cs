@@ -7,38 +7,16 @@ using GameStore.API.Dtos.Games;
 namespace GameStore.API.Services.Games;
 public class GameService(IGameRepository gameRepository, IGenreRepository genreRepository) : IGameService
 {
-    public async Task<List<GameSummaryDto>> GetGamesAsync()
-    {
-        var games = await gameRepository.GetAllAsync();
-        return games.Select(game => new GameSummaryDto(
-            game.Id,
-            game.Name,
-            game.Genre?.Name ?? "Unknown",
-            game.Price,
-            game.ReleaseDate,
-            game.UpdatedAt
-        )).ToList();
-    }
-
     public async Task<PaginatedResult<GameSummaryDto>> GetFilteredGamesAsync(GameFilterDto filter)
     {
-        var (games, totalCount) = await gameRepository.GetFilteredGamesAsync(filter);
+        var (games, totalCount) = await gameRepository.GetAllAsync(filter);
 
-        var gameDtos = games.Select(game => new GameSummaryDto(
-            game.Id,
-            game.Name,
-            game.Genre?.Name ?? "Unknown",
-            game.Price,
-            game.ReleaseDate,
-            game.UpdatedAt
-        )).ToList();
+        if (filter.PageSize > 0)
+        {
+            return new PaginatedResult<GameSummaryDto>(games, totalCount, filter.PageNumber, filter.PageSize);
+        }
 
-        return new PaginatedResult<GameSummaryDto>(
-            gameDtos,
-            totalCount,
-            filter.PageNumber,
-            filter.PageSize
-        );
+        return new PaginatedResult<GameSummaryDto>(games, totalCount, 1, totalCount);
     }
 
     public async Task<GameDetailsDto?> GetGameByIdAsync(int id)

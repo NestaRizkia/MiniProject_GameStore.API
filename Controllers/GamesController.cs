@@ -42,7 +42,7 @@ public class GamesController(IGameService gameService) : ControllerBase
     public async Task<ActionResult> PatchGame(int id, PatchGameDto patchGame)
     {
         await gameService.PatchGameAsync(id, patchGame);
-        return NoContent();
+        return Ok();
     }
 
     [Authorize]

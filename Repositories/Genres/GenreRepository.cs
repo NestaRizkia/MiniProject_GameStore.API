@@ -35,6 +35,10 @@ public class GenreRepository(GameStoreContext dbContext) : IGenreRepository
 
     public async Task DeleteAsync(int id)
     {
+        var hasGames = await dbContext.Games.AnyAsync(g => g.GenreId == id);
+        if (hasGames)
+            throw new InvalidOperationException("Cannot delete genre with existing games");
+
         await dbContext.Genres
             .Where(genre => genre.Id == id)
             .ExecuteDeleteAsync();

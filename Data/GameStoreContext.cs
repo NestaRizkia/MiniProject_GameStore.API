@@ -12,53 +12,6 @@ public class GameStoreContext(DbContextOptions<GameStoreContext> options)
 
     public DbSet<User> Users => Set<User>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Game>(entity =>
-        {
-            entity.ToTable("Games");
-            entity.Property(g => g.Id).HasColumnName("Id");
-            entity.Property(g => g.Name).HasColumnName("Name");
-            entity.Property(g => g.GenreId).HasColumnName("GenreId");
-            entity.Property(g => g.ReleaseDate).HasColumnName("ReleaseDate");
-            entity.Property(g => g.CreatedAt).HasColumnName("CreatedAt");
-            entity.Property(g => g.UpdatedAt).HasColumnName("UpdatedAt");
-            
-            entity.Property(g => g.Price)
-                  .HasColumnName("Price")
-                  .HasColumnType("decimal(18,2)");
-
-            entity.HasOne(g => g.Genre)
-                  .WithMany()
-                  .HasForeignKey(g => g.GenreId)
-                  .OnDelete(DeleteBehavior.Restrict);
-        });
-
-        modelBuilder.Entity<Genre>(entity =>
-        {
-            entity.ToTable("Genres");
-            entity.Property(g => g.Id).HasColumnName("Id");
-            entity.Property(g => g.Name).HasColumnName("Name");
-            entity.Property(g => g.CreatedAt).HasColumnName("CreatedAt");
-            entity.Property(g => g.UpdatedAt).HasColumnName("UpdatedAt");
-        });
-
-        modelBuilder.Entity<User>(entity =>
-        {
-            entity.ToTable("Users");
-            entity.Property(u => u.Id).HasColumnName("Id");
-            entity.Property(u => u.Username).HasColumnName("Username");
-            entity.Property(u => u.Email).HasColumnName("Email");
-            entity.Property(u => u.PasswordHash).HasColumnName("PasswordHash");
-            entity.Property(u => u.Role).HasColumnName("Role");
-            entity.Property(u => u.CreatedAt).HasColumnName("CreatedAt");
-            entity.Property(u => u.UpdatedAt).HasColumnName("UpdatedAt");
-
-            entity.HasIndex(u => u.Username).IsUnique();
-            entity.HasIndex(u => u.Email).IsUnique();
-        });
-    }
-
     public override int SaveChanges()
     {
         UpdateTimestamps();

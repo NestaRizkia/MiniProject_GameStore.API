@@ -1,5 +1,9 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace GameStore.API.Models;
 
+[Index(nameof(Username), IsUnique = true)]
+[Index(nameof(Email), IsUnique = true)]
 public class User
 {
     public int Id { get; set; }

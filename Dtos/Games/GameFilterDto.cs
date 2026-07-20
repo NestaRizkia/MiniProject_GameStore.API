@@ -4,25 +4,25 @@ namespace GameStore.API.Dtos.Games;
 
 public class GameFilterDto
 {
-    // Search filter - case-insensitive search on Name and Genre
     public string? SearchTerm { get; set; }
 
-    // Price range filters
+    // Parameter for char tolerance
+    [Range(0, 10, ErrorMessage = "Max edit distance must be between 0 and 10")]
+    public int MaxEditDistance { get; set; } = 2;
+
     [Range(0, double.MaxValue, ErrorMessage = "Minimum price must be greater than or equal to 0")]
-    public decimal? MinPrice { get; set; }
+    public decimal MinPrice { get; set; } = 0;
 
     [Range(0, double.MaxValue, ErrorMessage = "Maximum price must be greater than or equal to 0")]
-    public decimal? MaxPrice { get; set; }
+    public decimal MaxPrice { get; set; } = decimal.MaxValue;
 
-    // Date range filters
-    public DateOnly? StartDate { get; set; }
+    public DateOnly StartDate { get; set; } = DateOnly.MinValue;
 
-    public DateOnly? EndDate { get; set; }
+    public DateOnly EndDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 
-    // Pagination parameters
-    [Range(1, int.MaxValue, ErrorMessage = "Page number must be at least 1")]
+    [Range(0, int.MaxValue, ErrorMessage = "Page number must be at least 1")]
     public int PageNumber { get; set; } = 1;
 
-    [Range(1, 100, ErrorMessage = "Page size must be between 1 and 100")]
-    public int PageSize { get; set; } = 10;
+ //   [Range(1, 1000, ErrorMessage = "Page size must be between 1 and 100")]
+    public int PageSize { get; set; }
 }

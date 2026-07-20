@@ -1,81 +1,74 @@
-using GameStore.API.Models;
 using GameStore.API.Data;
 using GameStore.API.Dtos.Games;
+using GameStore.API.Models;
+using Fastenshtein;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace GameStore.API.Repositories.Games;
 
 public class GameRepository(GameStoreContext dbContext) : IGameRepository
 {
-    public async Task<List<Game>> GetAllAsync()
+    public async Task<(List<GameSummaryDto> Games, int TotalCount)> GetAllAsync(GameFilterDto filter)
     {
-        return await dbContext.Games
-            .FromSqlRaw(@"
-                SELECT ""Id"", ""Name"", ""GenreId"", ""Price"", ""ReleaseDate"", ""CreatedAt"", ""UpdatedAt"" 
-                FROM ""Games""")
-            .Include(game => game.Genre)
+        var sql = @"
+            SELECT g.""Id"", g.""Name"", g.""Price"", g.""ReleaseDate"", g.""UpdatedAt"",
+                   ge.""Name"" AS ""Genre""
+            FROM ""Games"" g
+            INNER JOIN ""Genres"" ge ON g.""GenreId"" = ge.""Id""
+            WHERE g.""Price"" BETWEEN @minPrice AND @maxPrice
+              AND g.""ReleaseDate"" BETWEEN @startDate AND @endDate";
+
+        var parameters = new NpgsqlParameter[]
+        {
+            new("@minPrice", filter.MinPrice),
+            new("@maxPrice", filter.MaxPrice),
+            new("@startDate", filter.StartDate),
+            new("@endDate", filter.EndDate)
+        };
+
+        var games = await dbContext.Database
+            .SqlQueryRaw<GameSummaryDto>(sql, parameters)
             .AsNoTracking()
             .ToListAsync();
+
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        {
+            var searchTerm = filter.SearchTerm.Trim().ToLower();
+            var levenshtein = new Levenshtein(searchTerm);
+
+            games = games
+                .Select(game => new
+                {
+                    Game = game,
+                    Distance = levenshtein.DistanceFrom(game.Name.ToLower())
+                })
+                .Where(candidate => candidate.Distance <= filter.MaxEditDistance)
+                .OrderBy(candidate => candidate.Distance)
+                .ThenBy(candidate => candidate.Game.Name)
+                .Select(candidate => candidate.Game)
+                .ToList();
+        }
+        else
+        {
+            games = games
+                .OrderBy(game => game.Name)
+                .ToList();
+        }
+
+        var totalCount = games.Count;
+
+        var paginatedGames = games
+            .Skip((filter.PageNumber - 1) * filter.PageSize)
+            .Take(filter.PageSize)
+            .ToList();
+
+        return (paginatedGames, totalCount);
     }
 
     public async Task<Game?> GetByIdAsync(int id)
     {
         return await dbContext.Games.FindAsync(id);
-    }
-
-    public async Task<(List<Game> Games, int TotalCount)> GetFilteredGamesAsync(GameFilterDto filter)
-    {
-        // Build LINQ query with filters
-        var query = dbContext.Games.AsQueryable();
-
-        // Search filter (Name)
-        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
-        {
-            var searchTerm = filter.SearchTerm.ToLower();
-            query = query.Where(g => g.Name.ToLower().Contains(searchTerm));
-        }
-
-        // Price range filter
-        if (filter.MinPrice.HasValue && filter.MaxPrice.HasValue)
-        {
-            query = query.Where(g => g.Price >= filter.MinPrice.Value && g.Price <= filter.MaxPrice.Value);
-        }
-        else if (filter.MinPrice.HasValue)
-        {
-            query = query.Where(g => g.Price >= filter.MinPrice.Value);
-        }
-        else if (filter.MaxPrice.HasValue)
-        {
-            query = query.Where(g => g.Price <= filter.MaxPrice.Value);
-        }
-
-        // Date range filter
-        if (filter.StartDate.HasValue && filter.EndDate.HasValue)
-        {
-            query = query.Where(g => g.ReleaseDate >= filter.StartDate.Value && g.ReleaseDate <= filter.EndDate.Value);
-        }
-        else if (filter.StartDate.HasValue)
-        {
-            query = query.Where(g => g.ReleaseDate >= filter.StartDate.Value);
-        }
-        else if (filter.EndDate.HasValue)
-        {
-            query = query.Where(g => g.ReleaseDate <= filter.EndDate.Value);
-        }
-
-        // Get total count with filters
-        var totalCount = await query.CountAsync();
-
-        // Add pagination and sorting
-        var games = await query
-            .OrderBy(g => g.Name)
-            .Skip((filter.PageNumber - 1) * filter.PageSize)
-            .Take(filter.PageSize)
-            .Include(g => g.Genre)
-            .AsNoTracking()
-            .ToListAsync();
-
-        return (games, totalCount);
     }
 
     public async Task<Game> AddAsync(Game game)
