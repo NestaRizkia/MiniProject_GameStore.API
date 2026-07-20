@@ -58,10 +58,9 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
 
         var totalCount = games.Count;
 
-        var paginatedGames = games
-            .Skip((filter.PageNumber - 1) * filter.PageSize)
-            .Take(filter.PageSize)
-            .ToList();
+        var paginatedGames = filter.PageSize > 0
+            ? games.Skip((filter.PageNumber - 1) * filter.PageSize).Take(filter.PageSize).ToList()
+            : games;
 
         return (paginatedGames, totalCount);
     }
