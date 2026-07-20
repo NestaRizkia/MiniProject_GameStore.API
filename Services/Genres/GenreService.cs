@@ -26,8 +26,7 @@ public class GenreService(IGenreRepository genreRepository) : IGenreService
 
         return new GenreDetailsDto(
             genre.Id,
-            genre.Name,
-            genre.CreatedAt
+            genre.Name
         );
     }
 
@@ -42,8 +41,7 @@ public class GenreService(IGenreRepository genreRepository) : IGenreService
 
         return new GenreDetailsDto(
             result.Id,
-            result.Name,
-            result.CreatedAt
+            result.Name
         );
     }
 

@@ -18,7 +18,13 @@ public class GenreRepository(GameStoreContext dbContext) : IGenreRepository
 
     public async Task<Genre?> GetByIdAsync(int id)
     {
-        return await dbContext.Genres.FindAsync(id);
+        return await dbContext.Genres
+            .FromSqlRaw(@"
+                SELECT ""Id"", ""Name"", ""CreatedAt"", ""UpdatedAt""
+                FROM ""Genres""
+                WHERE ""Id"" = {0}", id)
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
     }
 
     public async Task<Genre> AddAsync(Genre genre)
@@ -30,6 +36,7 @@ public class GenreRepository(GameStoreContext dbContext) : IGenreRepository
 
     public async Task UpdateAsync(Genre genre)
     {
+        dbContext.Genres.Update(genre);
         await dbContext.SaveChangesAsync();
     }
 

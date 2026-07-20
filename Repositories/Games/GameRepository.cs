@@ -67,7 +67,13 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
 
     public async Task<Game?> GetByIdAsync(int id)
     {
-        return await dbContext.Games.FindAsync(id);
+        return await dbContext.Games
+            .FromSqlRaw(@"
+                SELECT ""Id"", ""Name"", ""GenreId"", ""Price"", ""ReleaseDate""
+                FROM ""Games""
+                WHERE ""Id"" = {0}", id)
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
     }
 
     public async Task<Game> AddAsync(Game game)
@@ -79,6 +85,7 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
 
     public async Task UpdateAsync(Game game)
     {
+        dbContext.Games.Update(game);
         await dbContext.SaveChangesAsync();
     }
 
