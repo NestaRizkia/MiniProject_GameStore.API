@@ -7,10 +7,10 @@ namespace GameStore.API.Services.Auth;
 
 public class AuthService(IAuthRepository authRepository, IJwtTokenService jwtTokenService) : IAuthService
 {
-    public async Task<AuthResponseDto?> RegisterAsync(RegisterDto registerDto)
+    public async Task<AuthResponseDto?> RegisterAsync(RegisterDto registerDto, CancellationToken cancellationToken)
     {
         // Check if user already exists
-        if (await authRepository.UserExistsAsync(registerDto.Username, registerDto.Email))
+        if (await authRepository.UserExistsAsync(registerDto.Username, registerDto.Email, cancellationToken))
         {
             return null;
         }
@@ -27,7 +27,7 @@ public class AuthService(IAuthRepository authRepository, IJwtTokenService jwtTok
             Role = "User"
         };
 
-        var createdUser = await authRepository.CreateUserAsync(user);
+        var createdUser = await authRepository.CreateUserAsync(user, cancellationToken);
 
         // Generate token
         var token = jwtTokenService.GenerateToken(createdUser);
@@ -43,10 +43,10 @@ public class AuthService(IAuthRepository authRepository, IJwtTokenService jwtTok
         };
     }
 
-    public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto)
+    public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken)
     {
         // Find user
-        var user = await authRepository.GetUserByUsernameAsync(loginDto.Username);
+        var user = await authRepository.GetUserByUsernameAsync(loginDto.Username, cancellationToken);
         if (user == null)
         {
             return null;

@@ -9,7 +9,7 @@ namespace GameStore.API.Repositories.Games;
 
 public class GameRepository(GameStoreContext dbContext) : IGameRepository
 {
-    public async Task<(List<GameSummaryDto> Games, int TotalCount)> GetAllAsync(GameFilterDto filter)
+    public async Task<(List<GameSummaryDto> Games, int TotalCount)> GetAllAsync(GameFilterDto filter, CancellationToken cancellationToken)
     {
         var sql = @"
             SELECT g.""Id"", g.""Name"", g.""Price"", g.""ReleaseDate"",
@@ -30,7 +30,7 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
         var games = await dbContext.Database
             .SqlQueryRaw<GameSummaryDto>(sql, parameters)
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
         {
@@ -65,7 +65,7 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
         return (paginatedGames, totalCount);
     }
 
-    public async Task<Game?> GetByIdAsync(int id)
+    public async Task<Game?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         return await dbContext.Games
             .FromSqlRaw(@"
@@ -73,26 +73,26 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
                 FROM ""Games""
                 WHERE ""Id"" = {0}", id)
             .AsNoTracking()
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<Game> AddAsync(Game game)
+    public async Task<Game> AddAsync(Game game, CancellationToken cancellationToken)
     {
         dbContext.Games.Add(game);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
         return game;
     }
 
-    public async Task UpdateAsync(Game game)
+    public async Task UpdateAsync(Game game, CancellationToken cancellationToken)
     {
         dbContext.Games.Update(game);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
         await dbContext.Games
             .Where(game => game.Id == id)
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(cancellationToken);
     }
 }

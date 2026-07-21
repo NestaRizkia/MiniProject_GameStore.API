@@ -9,9 +9,9 @@ namespace GameStore.API.Controllers;
 public class AuthController(IAuthService authService) : ControllerBase
 {
     [HttpPost("register")]
-    public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto)
+    public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto, CancellationToken cancellationToken)
     {
-        var result = await authService.RegisterAsync(registerDto);
+        var result = await authService.RegisterAsync(registerDto, cancellationToken);
         
         if (result == null)
         {
@@ -22,9 +22,9 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto)
+    public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto, CancellationToken cancellationToken)
     {
-        var result = await authService.LoginAsync(loginDto);
+        var result = await authService.LoginAsync(loginDto, cancellationToken);
         
         if (result == null)
         {

@@ -6,17 +6,17 @@ namespace GameStore.API.Repositories.Genres;
 
 public class GenreRepository(GameStoreContext dbContext) : IGenreRepository
 {
-    public async Task<List<Genre>> GetAllAsync()
+    public async Task<List<Genre>> GetAllAsync(CancellationToken cancellationToken)
     {
         return await dbContext.Genres
             .FromSqlRaw(@"
                 SELECT ""Id"", ""Name"", ""CreatedAt"", ""UpdatedAt"" 
                 FROM ""Genres""")
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<Genre?> GetByIdAsync(int id)
+    public async Task<Genre?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         return await dbContext.Genres
             .FromSqlRaw(@"
@@ -24,30 +24,30 @@ public class GenreRepository(GameStoreContext dbContext) : IGenreRepository
                 FROM ""Genres""
                 WHERE ""Id"" = {0}", id)
             .AsNoTracking()
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<Genre> AddAsync(Genre genre)
+    public async Task<Genre> AddAsync(Genre genre, CancellationToken cancellationToken)
     {
         dbContext.Genres.Add(genre);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
         return genre;
     }
 
-    public async Task UpdateAsync(Genre genre)
+    public async Task UpdateAsync(Genre genre, CancellationToken cancellationToken)
     {
         dbContext.Genres.Update(genre);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        var hasGames = await dbContext.Games.AnyAsync(g => g.GenreId == id);
+        var hasGames = await dbContext.Games.AnyAsync(g => g.GenreId == id, cancellationToken);
         if (hasGames)
             throw new InvalidOperationException("Cannot delete genre with existing games");
 
         await dbContext.Genres
             .Where(genre => genre.Id == id)
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(cancellationToken);
     }
 }

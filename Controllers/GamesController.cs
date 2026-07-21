@@ -11,16 +11,16 @@ namespace GameStore.API.Controllers;
 public class GamesController(IGameService gameService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<PaginatedResult<GameSummaryDto>>> GetGames([FromQuery] GameFilterDto filter)
+    public async Task<ActionResult<PaginatedResult<GameSummaryDto>>> GetGames([FromQuery] GameFilterDto filter, CancellationToken cancellationToken)
     {
-        var result = await gameService.GetFilteredGamesAsync(filter);
+        var result = await gameService.GetFilteredGamesAsync(filter, cancellationToken);
         return Ok(result);
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<GameDetailsDto>> GetGameById (int id)
+    public async Task<ActionResult<GameDetailsDto>> GetGameById (int id, CancellationToken cancellationToken)
     {
-        var game = await gameService.GetGameByIdAsync(id);
+        var game = await gameService.GetGameByIdAsync(id, cancellationToken);
         if(game is null)
         {
             return NotFound();
@@ -31,25 +31,25 @@ public class GamesController(IGameService gameService) : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<ActionResult<GameDetailsDto>> AddGame(CreateGameDto createdGame)
+    public async Task<ActionResult<GameDetailsDto>> AddGame(CreateGameDto createdGame,CancellationToken cancellationToken)
     {
-        var game = await gameService.AddGameAsync(createdGame);
+        var game = await gameService.AddGameAsync(createdGame, cancellationToken);
         return CreatedAtAction(nameof(GetGameById), new { id = game.Id}, game);
     }
 
     [Authorize]
     [HttpPatch("{id}")]
-    public async Task<ActionResult> PatchGame(int id, PatchGameDto patchGame)
+    public async Task<ActionResult> PatchGame(int id, PatchGameDto patchGame, CancellationToken cancellationToken)
     {
-        await gameService.PatchGameAsync(id, patchGame);
+        await gameService.PatchGameAsync(id, patchGame, cancellationToken);
         return Ok();
     }
 
     [Authorize]
     [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteGame(int id)
+    public async Task<ActionResult> DeleteGame(int id, CancellationToken cancellationToken)
     {
-        await gameService.DeleteGameAsync(id);
+        await gameService.DeleteGameAsync(id, cancellationToken);
         return NoContent();
     }
 }

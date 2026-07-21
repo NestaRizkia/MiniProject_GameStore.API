@@ -16,8 +16,11 @@ public sealed class GlobalExceptionHandler(
         {
             KeyNotFoundException => (StatusCodes.Status404NotFound, "Resource not found"),
             InvalidOperationException => (StatusCodes.Status409Conflict, "Operation not valid"),
-            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
+            OperationCanceledException => (499, "Request was cancelled"),
+            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred"),
         };
+
+        logger.LogError(exception, "Request failed with {StatusCode}", statusCode);
 
         if (environment.IsDevelopment() && statusCode == 500)
             title = exception.Message;
