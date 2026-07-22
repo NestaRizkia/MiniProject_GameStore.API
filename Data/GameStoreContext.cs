@@ -10,8 +10,6 @@ public class GameStoreContext(DbContextOptions<GameStoreContext> options)
 
     public DbSet<Genre> Genres => Set<Genre>();
 
-    public DbSet<User> Users => Set<User>();
-
     public override int SaveChanges()
     {
         UpdateTimestamps();
@@ -27,7 +25,7 @@ public class GameStoreContext(DbContextOptions<GameStoreContext> options)
     private void UpdateTimestamps()
     {
         var entries = ChangeTracker.Entries()
-            .Where(e => e.Entity is Game || e.Entity is Genre || e.Entity is User);
+            .Where(e => e.Entity is Game || e.Entity is Genre);
 
         foreach (var entry in entries)
         {
@@ -43,11 +41,6 @@ public class GameStoreContext(DbContextOptions<GameStoreContext> options)
                     genre.CreatedAt = DateTime.UtcNow;
                     genre.UpdatedAt = DateTime.UtcNow;
                 }
-                else if (entry.Entity is User user)
-                {
-                    user.CreatedAt = DateTime.UtcNow;
-                    user.UpdatedAt = DateTime.UtcNow;
-                }
             }
             else if (entry.State == EntityState.Modified)
             {
@@ -58,10 +51,6 @@ public class GameStoreContext(DbContextOptions<GameStoreContext> options)
                 else if (entry.Entity is Genre genre)
                 {
                     genre.UpdatedAt = DateTime.UtcNow;
-                }
-                else if (entry.Entity is User user)
-                {
-                    user.UpdatedAt = DateTime.UtcNow;
                 }
             }
         }
