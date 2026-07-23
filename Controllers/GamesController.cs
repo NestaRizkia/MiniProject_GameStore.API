@@ -29,7 +29,7 @@ public class GamesController(IGameService gameService) : ControllerBase
         return Ok(game);
     }
 
-    [Authorize]
+    [Authorize(Policy = "WriteGamesPolicy")]
     [HttpPost]
     public async Task<ActionResult<GameDetailsDto>> AddGame(CreateGameDto createdGame,CancellationToken cancellationToken)
     {
@@ -37,7 +37,7 @@ public class GamesController(IGameService gameService) : ControllerBase
         return CreatedAtAction(nameof(GetGameById), new { id = game.Id}, game);
     }
 
-    [Authorize]
+    [Authorize(Policy = "WriteGamesPolicy")]
     [HttpPatch("{id}")]
     public async Task<ActionResult> PatchGame(int id, PatchGameDto patchGame, CancellationToken cancellationToken)
     {
@@ -45,7 +45,7 @@ public class GamesController(IGameService gameService) : ControllerBase
         return Ok();
     }
 
-    [Authorize]
+    [Authorize(Policy = "WriteGamesPolicy")]
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteGame(int id, CancellationToken cancellationToken)
     {

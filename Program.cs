@@ -4,6 +4,7 @@ using GameStore.API.Repositories.Games;
 using GameStore.API.Repositories.Genres;
 using GameStore.API.Services.Games;
 using GameStore.API.Services.Genres;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -40,7 +41,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformer>();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("WriteGamesPolicy", policy => 
+        policy.RequireRole("Admin_Gamestore", "game-manager"));
+    options.AddPolicy("WriteGenresPolicy", policy => 
+        policy.RequireRole("Admin_Gamestore", "genre-manager"));
+});
 
 // Register repositories
 builder.Services.AddScoped<IGameRepository, GameRepository>();

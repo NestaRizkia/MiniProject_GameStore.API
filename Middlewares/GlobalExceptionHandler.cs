@@ -17,6 +17,7 @@ public sealed class GlobalExceptionHandler(
             KeyNotFoundException => (StatusCodes.Status404NotFound, "Resource not found"),
             InvalidOperationException => (StatusCodes.Status409Conflict, "Operation not valid"),
             OperationCanceledException => (499, "Request was cancelled"),
+            UnauthorizedAccessException => (StatusCodes.Status403Forbidden, "Forbidden access to this resource"),
             _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred"),
         };
 
