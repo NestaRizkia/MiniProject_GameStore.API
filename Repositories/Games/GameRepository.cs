@@ -68,11 +68,17 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
     public async Task<Game?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         return await dbContext.Games
-            .FromSqlRaw(@"
-                SELECT ""Id"", ""Name"", ""GenreId"", ""Price"", ""ReleaseDate""
-                FROM ""Games""
-                WHERE ""Id"" = {0}", id)
-            .AsNoTracking()
+            .Where(g => g.Id == id)
+            .Select(g => new Game
+            {
+                Id = g.Id,
+                Name = g.Name,
+                GenreId = g.GenreId,
+                Price = g.Price,
+                ReleaseDate = g.ReleaseDate,
+                CreatedAt = g.CreatedAt,
+                UpdatedAt = g.UpdatedAt
+            })
             .FirstOrDefaultAsync(cancellationToken);
     }
 
