@@ -1,6 +1,5 @@
 using GameStore.API.Dtos;
 using GameStore.API.Dtos.Games;
-using GameStore.API.Services;
 using GameStore.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +8,7 @@ namespace GameStore.API.Controllers;
 
 [ApiController]
 [Route("games")]
-public class GamesController(IGameService gameService, HashidService hashidService) : ControllerBase
+public class GamesController(IGameService gameService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<PaginatedResult<GameSummaryDto>>> GetGames([FromQuery] GameFilterDto filter, CancellationToken cancellationToken)
@@ -18,12 +17,10 @@ public class GamesController(IGameService gameService, HashidService hashidServi
         return Ok(result);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<GameDetailsDto>> GetGameById (string id, CancellationToken cancellationToken)
+    [HttpPost("get")]
+    public async Task<ActionResult<GameDetailsDto>> GetGameById(IdRequest request, CancellationToken cancellationToken)
     {
-        var decodedId = hashidService.Decode(id);
-
-        var game = await gameService.GetGameByIdAsync(decodedId, cancellationToken);
+        var game = await gameService.GetGameByIdAsync(request.Id, cancellationToken);
         if(game is null)
         {
             return NotFound();
@@ -37,26 +34,22 @@ public class GamesController(IGameService gameService, HashidService hashidServi
     public async Task<ActionResult<GameDetailsDto>> AddGame(CreateGameDto createdGame,CancellationToken cancellationToken)
     {
         var game = await gameService.AddGameAsync(createdGame, cancellationToken);
-        return CreatedAtAction(nameof(GetGameById), new { id = hashidService.Encode(game.Id) }, game);
+        return Ok(game);
     }
 
     [Authorize(Policy = "WriteGamesPolicy")]
-    [HttpPatch("{id}")]
-    public async Task<ActionResult> PatchGame(string id, PatchGameDto patchGame, CancellationToken cancellationToken)
+    [HttpPatch("patch")]
+    public async Task<ActionResult> PatchGame(PatchGameDto patchGame, CancellationToken cancellationToken)
     {
-        var decodedId = hashidService.Decode(id);
-
-        await gameService.PatchGameAsync(decodedId, patchGame, cancellationToken);
+        await gameService.PatchGameAsync(patchGame.Id, patchGame, cancellationToken);
         return Ok();
     }
 
     [Authorize(Policy = "WriteGamesPolicy")]
-    [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteGame(string id, CancellationToken cancellationToken)
+    [HttpDelete("delete")]
+    public async Task<ActionResult> DeleteGame(IdRequest request, CancellationToken cancellationToken)
     {
-        var decodedId = hashidService.Decode(id);
-
-        await gameService.DeleteGameAsync(decodedId, cancellationToken);
-        return NoContent();
+        await gameService.DeleteGameAsync(request.Id, cancellationToken);
+        return Ok();
     }
 }

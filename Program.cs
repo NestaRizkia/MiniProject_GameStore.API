@@ -1,5 +1,4 @@
 using GameStore.API.Data;
-using GameStore.API.Helpers;
 using GameStore.API.Middlewares;
 using GameStore.API.Repositories;
 using GameStore.API.Repositories.Interfaces;
@@ -7,20 +6,12 @@ using GameStore.API.Services;
 using GameStore.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-var hashidSalt = builder.Configuration["Hashids:Salt"] ?? "GameStore-API";
-var hashidMinLength = int.TryParse(builder.Configuration["Hashids:MinHashLength"], out var len) ? len : 6;
-var hashidService = new HashidService(hashidSalt, hashidMinLength);
-builder.Services.AddSingleton(hashidService);
-
-builder.Services.Configure<JsonOptions>(options =>
-    options.JsonSerializerOptions.Converters.Add(new HashidsJsonConverterFactory(hashidService)));
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 

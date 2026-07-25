@@ -1,5 +1,5 @@
+using GameStore.API.Dtos;
 using GameStore.API.Dtos.Genres;
-using GameStore.API.Services;
 using GameStore.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +8,7 @@ namespace GameStore.API.Controllers;
 
 [ApiController]
 [Route("genres")]
-public class GenresController(IGenreService genreService, HashidService hashidService) : ControllerBase
+public class GenresController(IGenreService genreService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<GenreDetailsDto>>> GetGenres(CancellationToken cancellationToken)
@@ -17,12 +17,10 @@ public class GenresController(IGenreService genreService, HashidService hashidSe
         return Ok(genres);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<GenreDetailsDto>> GetGenreById(string id, CancellationToken cancellationToken)
+    [HttpPost("get")]
+    public async Task<ActionResult<GenreDetailsDto>> GetGenreById(IdRequest request, CancellationToken cancellationToken)
     {
-        var decodedId = hashidService.Decode(id);
-
-        var genre = await genreService.GetGenreByIdAsync(decodedId, cancellationToken);
+        var genre = await genreService.GetGenreByIdAsync(request.Id, cancellationToken);
         if (genre is null)
         {
             return NotFound();
@@ -36,26 +34,22 @@ public class GenresController(IGenreService genreService, HashidService hashidSe
     public async Task<ActionResult<GenreDetailsDto>> AddGenre(CreateGenreDto createGenre, CancellationToken cancellationToken)
     {
         var genre = await genreService.AddGenreAsync(createGenre, cancellationToken);
-        return CreatedAtAction(nameof(GetGenreById), new { id = hashidService.Encode(genre.Id) }, genre);
+        return Ok(genre);
     }
 
     [Authorize(Policy = "WriteGenresPolicy")]
-    [HttpPatch("{id}")]
-    public async Task<ActionResult> PatchGenre(string id, PatchGenreDto patchGenre, CancellationToken cancellationToken)
+    [HttpPatch("patch")]
+    public async Task<ActionResult> PatchGenre(PatchGenreDto patchGenre, CancellationToken cancellationToken)
     {
-        var decodedId = hashidService.Decode(id);
-
-        await genreService.PatchGenreAsync(decodedId, patchGenre, cancellationToken);
-        return NoContent();
+        await genreService.PatchGenreAsync(patchGenre.Id, patchGenre, cancellationToken);
+        return Ok();
     }
 
     [Authorize(Policy = "WriteGenresPolicy")]
-    [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteGenre(string id, CancellationToken cancellationToken)
+    [HttpDelete("delete")]
+    public async Task<ActionResult> DeleteGenre(IdRequest request, CancellationToken cancellationToken)
     {
-        var decodedId = hashidService.Decode(id);
-
-        await genreService.DeleteGenreAsync(decodedId, cancellationToken);
-        return NoContent();
+        await genreService.DeleteGenreAsync(request.Id, cancellationToken);
+        return Ok();
     }
 }
