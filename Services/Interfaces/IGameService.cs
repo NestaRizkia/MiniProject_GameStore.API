@@ -1,7 +1,7 @@
 using GameStore.API.Dtos;
 using GameStore.API.Dtos.Games;
 
-namespace GameStore.API.Services.Games;
+namespace GameStore.API.Services.Interfaces;
 
 public interface IGameService
 {

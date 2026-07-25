@@ -1,10 +1,10 @@
 using GameStore.API.Models;
-using GameStore.API.Repositories.Games;
-using GameStore.API.Repositories.Genres;
+using GameStore.API.Repositories.Interfaces;
 using GameStore.API.Dtos;
 using GameStore.API.Dtos.Games;
+using GameStore.API.Services.Interfaces;
 
-namespace GameStore.API.Services.Games;
+namespace GameStore.API.Services;
 public class GameService(IGameRepository gameRepository, IGenreRepository genreRepository) : IGameService
 {
     public async Task<PaginatedResult<GameSummaryDto>> GetFilteredGamesAsync(GameFilterDto filter, CancellationToken cancellationToken)

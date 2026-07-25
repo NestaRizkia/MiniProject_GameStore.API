@@ -1,11 +1,12 @@
 using GameStore.API.Data;
 using GameStore.API.Dtos.Games;
 using GameStore.API.Models;
+using GameStore.API.Repositories.Interfaces;
 using Fastenshtein;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace GameStore.API.Repositories.Games;
+namespace GameStore.API.Repositories;
 
 public class GameRepository(GameStoreContext dbContext) : IGameRepository
 {

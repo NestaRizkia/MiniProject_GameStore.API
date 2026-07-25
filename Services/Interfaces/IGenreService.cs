@@ -1,6 +1,6 @@
 using GameStore.API.Dtos.Genres;
 
-namespace GameStore.API.Services.Genres;
+namespace GameStore.API.Services.Interfaces;
 
 public interface IGenreService
 {

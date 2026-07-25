@@ -1,11 +1,10 @@
 using GameStore.API.Data;
 using GameStore.API.Helpers;
 using GameStore.API.Middlewares;
-using GameStore.API.Repositories.Games;
-using GameStore.API.Repositories.Genres;
+using GameStore.API.Repositories;
+using GameStore.API.Repositories.Interfaces;
 using GameStore.API.Services;
-using GameStore.API.Services.Games;
-using GameStore.API.Services.Genres;
+using GameStore.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;

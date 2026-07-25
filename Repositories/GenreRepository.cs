@@ -1,8 +1,9 @@
 using GameStore.API.Models;
 using GameStore.API.Data;
+using GameStore.API.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace GameStore.API.Repositories.Genres;
+namespace GameStore.API.Repositories;
 
 public class GenreRepository(GameStoreContext dbContext) : IGenreRepository
 {

@@ -1,6 +1,6 @@
 using GameStore.API.Models;
 
-namespace GameStore.API.Repositories.Genres;
+namespace GameStore.API.Repositories.Interfaces;
 
 public interface IGenreRepository
 {

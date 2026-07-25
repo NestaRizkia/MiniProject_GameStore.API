@@ -1,6 +1,6 @@
 using GameStore.API.Dtos.Genres;
 using GameStore.API.Services;
-using GameStore.API.Services.Genres;
+using GameStore.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

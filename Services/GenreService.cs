@@ -1,8 +1,9 @@
 using GameStore.API.Models;
 using GameStore.API.Dtos.Genres;
-using GameStore.API.Repositories.Genres;
+using GameStore.API.Repositories.Interfaces;
+using GameStore.API.Services.Interfaces;
 
-namespace GameStore.API.Services.Genres;
+namespace GameStore.API.Services;
 
 public class GenreService(IGenreRepository genreRepository) : IGenreService
 {
@@ -53,7 +54,6 @@ public class GenreService(IGenreRepository genreRepository) : IGenreService
             throw new KeyNotFoundException($"Genre with id {id} not Found");
         }
 
-        // Only update fields that are provided (not null)
         if (patchGenre.Name != null)
         {
             existingGenre.Name = patchGenre.Name;

@@ -1,7 +1,7 @@
 using GameStore.API.Dtos.Games;
 using GameStore.API.Models;
 
-namespace GameStore.API.Repositories.Games;
+namespace GameStore.API.Repositories.Interfaces;
 
 public interface IGameRepository
 {
