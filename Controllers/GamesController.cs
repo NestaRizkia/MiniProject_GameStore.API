@@ -17,8 +17,8 @@ public class GamesController(IGameService gameService) : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("get")]
-    public async Task<ActionResult<GameDetailsDto>> GetGameById(IdRequest request, CancellationToken cancellationToken)
+    [HttpPost("details")]
+    public async Task<ActionResult<GameSummaryDto>> GetGameById(IdRequest request, CancellationToken cancellationToken)
     {
         var game = await gameService.GetGameByIdAsync(request.Id, cancellationToken);
         if(game is null)
@@ -31,14 +31,14 @@ public class GamesController(IGameService gameService) : ControllerBase
 
     [Authorize(Policy = "WriteGamesPolicy")]
     [HttpPost]
-    public async Task<ActionResult<GameDetailsDto>> AddGame(CreateGameDto createdGame,CancellationToken cancellationToken)
+    public async Task<ActionResult<GameSummaryDto>> AddGame(CreateGameDto createdGame,CancellationToken cancellationToken)
     {
         var game = await gameService.AddGameAsync(createdGame, cancellationToken);
         return Ok(game);
     }
 
     [Authorize(Policy = "WriteGamesPolicy")]
-    [HttpPatch("patch")]
+    [HttpPatch("update")]
     public async Task<ActionResult> PatchGame(PatchGameDto patchGame, CancellationToken cancellationToken)
     {
         await gameService.PatchGameAsync(patchGame.Id, patchGame, cancellationToken);
@@ -46,7 +46,7 @@ public class GamesController(IGameService gameService) : ControllerBase
     }
 
     [Authorize(Policy = "WriteGamesPolicy")]
-    [HttpDelete("delete")]
+    [HttpPost("remove")]
     public async Task<ActionResult> DeleteGame(IdRequest request, CancellationToken cancellationToken)
     {
         await gameService.DeleteGameAsync(request.Id, cancellationToken);

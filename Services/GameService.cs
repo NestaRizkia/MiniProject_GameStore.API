@@ -19,7 +19,7 @@ public class GameService(IGameRepository gameRepository, IGenreRepository genreR
         return new PaginatedResult<GameSummaryDto>(games, totalCount, 1, totalCount);
     }
 
-    public async Task<GameDetailsDto?> GetGameByIdAsync(int id, CancellationToken cancellationToken)
+    public async Task<GameSummaryDto?> GetGameByIdAsync(int id, CancellationToken cancellationToken)
     {
         var game = await gameRepository.GetByIdAsync(id, cancellationToken);
         
@@ -28,15 +28,15 @@ public class GameService(IGameRepository gameRepository, IGenreRepository genreR
             return null;
         }
 
-        return new GameDetailsDto(
-            game.Id, game.Name, game.GenreId, game.Price, game.ReleaseDate
+        return new GameSummaryDto(
+            game.Id, game.Name, game.Genre!.Name, game.Price, game.ReleaseDate
         );
     }
 
-    public async Task<GameDetailsDto> AddGameAsync(CreateGameDto createGame, CancellationToken cancellationToken)
+    public async Task<GameSummaryDto> AddGameAsync(CreateGameDto createGame, CancellationToken cancellationToken)
     {
-        var genreExists = await genreRepository.GetByIdAsync(createGame.GenreId, cancellationToken);
-        if (genreExists is null)
+        var genre = await genreRepository.GetByIdAsync(createGame.GenreId, cancellationToken);
+        if (genre is null)
         {
             throw new KeyNotFoundException($"Genre with id {createGame.GenreId} not found");
         }
@@ -50,10 +50,10 @@ public class GameService(IGameRepository gameRepository, IGenreRepository genreR
 
         var result = await gameRepository.AddAsync(game, cancellationToken);
         
-        return new GameDetailsDto(
+        return new GameSummaryDto(
             result.Id,
             result.Name,
-            result.GenreId,
+            genre.Name,
             result.Price,
             result.ReleaseDate
         );

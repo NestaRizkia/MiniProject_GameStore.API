@@ -17,7 +17,7 @@ public class GenresController(IGenreService genreService) : ControllerBase
         return Ok(genres);
     }
 
-    [HttpPost("get")]
+    [HttpPost("details")]
     public async Task<ActionResult<GenreDetailsDto>> GetGenreById(IdRequest request, CancellationToken cancellationToken)
     {
         var genre = await genreService.GetGenreByIdAsync(request.Id, cancellationToken);
@@ -38,7 +38,7 @@ public class GenresController(IGenreService genreService) : ControllerBase
     }
 
     [Authorize(Policy = "WriteGenresPolicy")]
-    [HttpPatch("patch")]
+    [HttpPatch("update")]
     public async Task<ActionResult> PatchGenre(PatchGenreDto patchGenre, CancellationToken cancellationToken)
     {
         await genreService.PatchGenreAsync(patchGenre.Id, patchGenre, cancellationToken);
@@ -46,7 +46,7 @@ public class GenresController(IGenreService genreService) : ControllerBase
     }
 
     [Authorize(Policy = "WriteGenresPolicy")]
-    [HttpDelete("delete")]
+    [HttpPost("remove")]
     public async Task<ActionResult> DeleteGenre(IdRequest request, CancellationToken cancellationToken)
     {
         await genreService.DeleteGenreAsync(request.Id, cancellationToken);
