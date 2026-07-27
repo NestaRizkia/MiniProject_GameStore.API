@@ -18,7 +18,8 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
             FROM ""Games"" g
             INNER JOIN ""Genres"" ge ON g.""GenreId"" = ge.""Id""
             WHERE g.""Price"" BETWEEN @minPrice AND @maxPrice
-              AND g.""ReleaseDate"" BETWEEN @startDate AND @endDate";
+              AND g.""ReleaseDate"" BETWEEN @startDate AND @endDate
+            ORDER BY g.""Name"" ASC";
 
         var parameters = new NpgsqlParameter[]
         {
@@ -48,12 +49,6 @@ public class GameRepository(GameStoreContext dbContext) : IGameRepository
                 .OrderBy(candidate => candidate.Distance)
                 .ThenBy(candidate => candidate.Game.Name)
                 .Select(candidate => candidate.Game)
-                .ToList();
-        }
-        else
-        {
-            games = games
-                .OrderBy(game => game.Name)
                 .ToList();
         }
 
