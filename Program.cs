@@ -1,10 +1,8 @@
+using GameStore.API.Configuration;
 using GameStore.API.Data;
 using GameStore.API.Middlewares;
-using GameStore.API.Repositories;
-using GameStore.API.Repositories.Interfaces;
-using GameStore.API.Services;
-using GameStore.API.Services.Interfaces;
-using Microsoft.AspNetCore.Authentication;
+using GameStore.API.Modules.Games;
+using GameStore.API.Modules.Genres;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -15,7 +13,6 @@ builder.Services.AddControllers();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-// Configure Keycloak Authentication & Authorization
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -31,35 +28,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true
         };
-
-        options.Events = new JwtBearerEvents
-        {
-            OnAuthenticationFailed = context =>
-            {
-                Console.WriteLine($"Authentication failed: {context.Exception.Message}");
-                return Task.CompletedTask;
-            }
-        };
     });
 
-builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformer>();
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("WriteGamesPolicy", policy => 
-        policy.RequireRole("Admin_Gamestore", "game-manager"));
-    options.AddPolicy("WriteGenresPolicy", policy => 
-        policy.RequireRole("Admin_Gamestore", "genre-manager"));
-});
+builder.Services.Configure<UMAOptions>(builder.Configuration.GetSection("UMA"));
 
-// Register repositories
-builder.Services.AddScoped<IGameRepository, GameRepository>();
-builder.Services.AddScoped<IGenreRepository, GenreRepository>();
+// Register modules
+builder.Services.AddGamesModule();
+builder.Services.AddGenresModule();
 
-// Register services
-builder.Services.AddScoped<IGameService, GameService>();
-builder.Services.AddScoped<IGenreService, GenreService>();
-
-// Configure Database
 builder.Services.AddDbContext<GameStoreContext>(options => 
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("neonconnection"));
@@ -70,6 +46,7 @@ var app = builder.Build();
 app.UseExceptionHandler();
 
 app.UseAuthentication();
+app.UseMiddleware<KeycloakAuthorizationMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

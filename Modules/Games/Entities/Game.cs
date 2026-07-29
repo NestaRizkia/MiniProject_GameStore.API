@@ -1,0 +1,22 @@
+using GameStore.API.Modules.Genres.Entities;
+
+namespace GameStore.API.Modules.Games.Entities;
+
+public class Game
+{
+    public int Id {get;set;}
+
+    public required string Name {get;set;}
+
+    public Genre? Genre {get;set;}
+
+    public int GenreId {get;set;}
+
+    public decimal Price {get;set;}
+
+    public DateOnly ReleaseDate {get;set;}
+
+    public DateTime CreatedAt {get;set;}
+
+    public DateTime UpdatedAt {get;set;}
+}

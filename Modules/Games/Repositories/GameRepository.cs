@@ -1,0 +1,100 @@
+using GameStore.API.Data;
+using GameStore.API.Modules.Games.Dtos;
+using GameStore.API.Modules.Games.Entities;
+using GameStore.API.Modules.Games.Repositories.Interfaces;
+using Fastenshtein;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+
+namespace GameStore.API.Modules.Games.Repositories;
+
+public class GameRepository(GameStoreContext dbContext) : IGameRepository
+{
+    public async Task<(List<GameSummaryDto> Games, int TotalCount)> GetAllAsync(GameFilterDto filter, CancellationToken cancellationToken)
+    {
+        var sql = @"
+            SELECT g.""Id"", g.""Name"", g.""Price"", g.""ReleaseDate"",
+                   ge.""Name"" AS ""Genre""
+            FROM ""Games"" g
+            INNER JOIN ""Genres"" ge ON g.""GenreId"" = ge.""Id""
+            WHERE g.""Price"" BETWEEN @minPrice AND @maxPrice
+              AND g.""ReleaseDate"" BETWEEN @startDate AND @endDate
+            ORDER BY g.""Name"" ASC";
+
+        var parameters = new NpgsqlParameter[]
+        {
+            new("@minPrice", filter.MinPrice),
+            new("@maxPrice", filter.MaxPrice),
+            new("@startDate", filter.StartDate),
+            new("@endDate", filter.EndDate)
+        };
+
+        var games = await dbContext.Database
+            .SqlQueryRaw<GameSummaryDto>(sql, parameters)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        {
+            var searchTerm = filter.SearchTerm.Trim().ToLower();
+            var levenshtein = new Levenshtein(searchTerm);
+
+            games = games
+                .Select(game => new
+                {
+                    Game = game,
+                    Distance = levenshtein.DistanceFrom(game.Name.ToLower())
+                })
+                .Where(candidate => candidate.Distance <= filter.MaxEditDistance)
+                .OrderBy(candidate => candidate.Distance)
+                .ThenBy(candidate => candidate.Game.Name)
+                .Select(candidate => candidate.Game)
+                .ToList();
+        }
+
+        var totalCount = games.Count;
+
+        var paginatedGames = filter.PageSize > 0
+            ? games.Skip((filter.PageNumber - 1) * filter.PageSize).Take(filter.PageSize).ToList()
+            : games;
+
+        return (paginatedGames, totalCount);
+    }
+
+    public async Task<Game?> GetByIdAsync(int id, CancellationToken cancellationToken)
+    {
+        return await dbContext.Games
+            .Include(g => g.Genre)
+            .Where(g => g.Id == id)
+            .Select(g => new Game
+            {
+                Id = g.Id,
+                Name = g.Name,
+                GenreId = g.GenreId,
+                Price = g.Price,
+                ReleaseDate = g.ReleaseDate,
+                Genre = g.Genre
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<Game> AddAsync(Game game, CancellationToken cancellationToken)
+    {
+        dbContext.Games.Add(game);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return game;
+    }
+
+    public async Task UpdateAsync(Game game, CancellationToken cancellationToken)
+    {
+        dbContext.Games.Update(game);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken)
+    {
+        await dbContext.Games
+            .Where(game => game.Id == id)
+            .ExecuteDeleteAsync(cancellationToken);
+    }
+}

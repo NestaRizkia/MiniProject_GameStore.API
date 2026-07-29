@@ -1,0 +1,104 @@
+using GameStore.API.Modules.Games.Entities;
+using GameStore.API.Modules.Games.Repositories.Interfaces;
+using GameStore.API.Common.Responses;
+using GameStore.API.Modules.Games.Dtos;
+using GameStore.API.Modules.Games.Services.Interfaces;
+using GameStore.API.Modules.Genres.Repositories.Interfaces;
+
+namespace GameStore.API.Modules.Games.Services;
+public class GameService(IGameRepository gameRepository, IGenreRepository genreRepository) : IGameService
+{
+    public async Task<PaginatedResult<GameSummaryDto>> GetFilteredGamesAsync(GameFilterDto filter, CancellationToken cancellationToken)
+    {
+        var (games, totalCount) = await gameRepository.GetAllAsync(filter, cancellationToken);
+
+        if (filter.PageSize > 0)
+        {
+            return new PaginatedResult<GameSummaryDto>(games, totalCount, filter.PageNumber, filter.PageSize);
+        }
+
+        return new PaginatedResult<GameSummaryDto>(games, totalCount, 1, totalCount);
+    }
+
+    public async Task<GameSummaryDto?> GetGameByIdAsync(int id, CancellationToken cancellationToken)
+    {
+        var game = await gameRepository.GetByIdAsync(id, cancellationToken);
+        
+        if(game is null)
+        {
+            return null;
+        }
+
+        return new GameSummaryDto(
+            game.Id, game.Name, game.Genre!.Name, game.Price, game.ReleaseDate
+        );
+    }
+
+    public async Task<GameSummaryDto> AddGameAsync(CreateGameDto createGame, CancellationToken cancellationToken)
+    {
+        var genre = await genreRepository.GetByIdAsync(createGame.GenreId, cancellationToken);
+        if (genre is null)
+        {
+            throw new KeyNotFoundException($"Genre with id {createGame.GenreId} not found");
+        }
+
+        var game = new Game{
+            Name = createGame.Name,
+            GenreId = createGame.GenreId,
+            Price = createGame.Price,
+            ReleaseDate = createGame.ReleaseDate
+        };
+
+        var result = await gameRepository.AddAsync(game, cancellationToken);
+        
+        return new GameSummaryDto(
+            result.Id,
+            result.Name,
+            genre.Name,
+            result.Price,
+            result.ReleaseDate
+        );
+    }
+
+    public async Task PatchGameAsync(int id, PatchGameDto patchGame, CancellationToken cancellationToken)
+    {
+        var existingGame = await gameRepository.GetByIdAsync(id, cancellationToken);
+        if (existingGame is null)
+        {
+            throw new KeyNotFoundException($"Game with id {id} not Found");
+        }
+
+        if (patchGame.Name != null)
+        {
+            existingGame.Name = patchGame.Name;
+        }
+
+        if (patchGame.GenreId.HasValue)
+        {
+            var genreExists = await genreRepository.GetByIdAsync(patchGame.GenreId.Value, cancellationToken);
+            if (genreExists is null)
+            {
+                throw new KeyNotFoundException($"Genre with id {patchGame.GenreId.Value} not found");
+            }
+            
+            existingGame.GenreId = patchGame.GenreId.Value;
+        }
+
+        if (patchGame.Price.HasValue)
+        {
+            existingGame.Price = patchGame.Price.Value;
+        }
+
+        if (patchGame.ReleaseDate.HasValue)
+        {
+            existingGame.ReleaseDate = patchGame.ReleaseDate.Value;
+        }
+
+        await gameRepository.UpdateAsync(existingGame, cancellationToken);
+    }
+
+    public async Task DeleteGameAsync(int id, CancellationToken cancellationToken)
+    {
+        await gameRepository.DeleteAsync(id, cancellationToken);
+    }
+}

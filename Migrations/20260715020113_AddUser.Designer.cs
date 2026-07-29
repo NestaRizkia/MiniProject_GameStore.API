@@ -25,7 +25,7 @@ namespace GameStore.API.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("GameStore.API.Models.Game", b =>
+            modelBuilder.Entity("GameStore.API.Modules.Games.Entities.Game", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -66,7 +66,7 @@ namespace GameStore.API.Migrations
                     b.ToTable("Games", (string)null);
                 });
 
-            modelBuilder.Entity("GameStore.API.Models.Genre", b =>
+            modelBuilder.Entity("GameStore.API.Modules.Genres.Entities.Genre", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -93,7 +93,7 @@ namespace GameStore.API.Migrations
                     b.ToTable("Genres", (string)null);
                 });
 
-            modelBuilder.Entity("GameStore.API.Models.User", b =>
+            modelBuilder.Entity("GameStore.API.Modules.Users.Entities.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -141,9 +141,9 @@ namespace GameStore.API.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("GameStore.API.Models.Game", b =>
+            modelBuilder.Entity("GameStore.API.Modules.Games.Entities.Game", b =>
                 {
-                    b.HasOne("GameStore.API.Models.Genre", "Genre")
+                    b.HasOne("GameStore.API.Modules.Genres.Entities.Genre", "Genre")
                         .WithMany()
                         .HasForeignKey("GenreId")
                         .OnDelete(DeleteBehavior.Restrict)

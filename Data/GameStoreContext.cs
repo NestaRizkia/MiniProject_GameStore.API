@@ -1,4 +1,5 @@
-using GameStore.API.Models;
+using GameStore.API.Modules.Games.Entities;
+using GameStore.API.Modules.Genres.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.API.Data;
